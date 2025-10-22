@@ -3,15 +3,9 @@ import { useSelector, useDispatch } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
 import { fetchProjectById, deleteProject } from "../features/projects/projectThunks";
 import { db } from "../firebase/firebaseConfig";
-import {
-  collection,
-  addDoc,
-  getDocs,
-  doc,
-  updateDoc,
-  deleteDoc,
-} from "firebase/firestore";
+import { collection, addDoc, getDocs, doc, updateDoc } from "firebase/firestore";
 import TaskCard from "../components/TaskCard";
+import { toast } from "react-toastify"; // ✅ Import toast
 
 export default function ProjectDetail() {
   const { user } = useSelector((state) => state.auth);
@@ -35,7 +29,6 @@ export default function ProjectDetail() {
       const result = await dispatch(fetchProjectById(projectId)).unwrap();
       setProject(result);
 
-      // Fetch all tasks under this project
       const tasksRef = collection(db, "projects", projectId, "tasks");
       const tasksSnap = await getDocs(tasksRef);
       const tasksData = tasksSnap.docs.map((docSnap) => ({
@@ -44,6 +37,7 @@ export default function ProjectDetail() {
       }));
       setTasks(tasksData);
     } catch (err) {
+      toast.error("Failed to load project. ❌");
       console.error(err);
     }
   };
@@ -53,24 +47,36 @@ export default function ProjectDetail() {
   // ✅ Add task
   const handleAddTask = async () => {
     if (!canEdit || !newTaskTitle.trim()) return;
-    const tasksRef = collection(db, "projects", projectId, "tasks");
-    await addDoc(tasksRef, {
-      title: newTaskTitle,
-      status: newTaskStatus,
-    });
-    setNewTaskTitle("");
-    setNewTaskStatus("pending");
-    loadProjectData();
+    try {
+      const tasksRef = collection(db, "projects", projectId, "tasks");
+      await addDoc(tasksRef, {
+        title: newTaskTitle,
+        status: newTaskStatus,
+      });
+      setNewTaskTitle("");
+      setNewTaskStatus("pending");
+      toast.success("Task added successfully! ✅");
+      loadProjectData();
+    } catch (err) {
+      toast.error("Failed to add task ❌");
+      console.error(err);
+    }
   };
 
   // ✅ Edit project title
   const handleEditTitle = async () => {
     if (!canEdit) return;
     if (isEditingTitle && editedTitle.trim()) {
-      const projectRef = doc(db, "projects", projectId);
-      await updateDoc(projectRef, { title: editedTitle });
-      setProject((prev) => ({ ...prev, title: editedTitle }));
-      setIsEditingTitle(false);
+      try {
+        const projectRef = doc(db, "projects", projectId);
+        await updateDoc(projectRef, { title: editedTitle });
+        setProject((prev) => ({ ...prev, title: editedTitle }));
+        setIsEditingTitle(false);
+        toast.success("Project title updated! ✅");
+      } catch (err) {
+        toast.error("Failed to update project title ❌");
+        console.error(err);
+      }
     } else {
       setEditedTitle(project.title);
       setIsEditingTitle(true);
@@ -81,8 +87,14 @@ export default function ProjectDetail() {
   const handleDeleteProject = async () => {
     if (!canEdit) return;
     if (window.confirm("Are you sure you want to delete this project?")) {
-      await dispatch(deleteProject(projectId));
-      navigate("/dashboard");
+      try {
+        await dispatch(deleteProject(projectId)).unwrap();
+        toast.success("Project deleted successfully! ✅");
+        navigate("/dashboard");
+      } catch (err) {
+        toast.error("Failed to delete project ❌");
+        console.error(err);
+      }
     }
   };
 

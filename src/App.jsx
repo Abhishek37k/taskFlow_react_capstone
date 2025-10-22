@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
+import { ToastContainer } from "react-toastify";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -36,6 +37,7 @@ const App = () => {
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       )}
+            <ToastContainer position="bottom-right" autoClose={4000} />
     </>
   );
 };
