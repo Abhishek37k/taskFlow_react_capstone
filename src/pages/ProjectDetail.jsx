@@ -6,6 +6,7 @@ import { db } from "../firebase/firebaseConfig";
 import { collection, addDoc, getDocs, doc, updateDoc } from "firebase/firestore";
 import TaskCard from "../components/TaskCard";
 import { toast } from "react-toastify"; // ✅ Import toast
+import { motion, AnimatePresence } from "framer-motion"; // ✅ Import Framer Motion
 
 export default function ProjectDetail() {
   const { user } = useSelector((state) => state.auth);
@@ -170,21 +171,36 @@ export default function ProjectDetail() {
         </div>
       )}
 
-      {/* Task list */}
+      {/* Task list with animation */}
       <div className="space-y-3">
-        {tasks.length === 0 ? (
-          <p>No tasks available.</p>
-        ) : (
-          tasks.map((task) => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              canEdit={canEdit}
-              projectId={projectId}
-              reload={loadProjectData}
-            />
-          ))
-        )}
+        <AnimatePresence>
+          {tasks.length === 0 ? (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              No tasks available.
+            </motion.p>
+          ) : (
+            tasks.map((task) => (
+              <motion.div
+                key={task.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <TaskCard
+                  task={task}
+                  canEdit={canEdit}
+                  projectId={projectId}
+                  reload={loadProjectData}
+                />
+              </motion.div>
+            ))
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

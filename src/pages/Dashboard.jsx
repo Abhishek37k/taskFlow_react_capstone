@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchProjects, addProject } from "../features/projects/projectThunks";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 export default function Dashboard() {
   const { user } = useSelector((state) => state.auth);
@@ -21,6 +22,19 @@ export default function Dashboard() {
   };
 
   const goToProject = (projectId) => navigate(`/project/${projectId}`);
+
+  // Framer Motion Variants
+  const containerVariants = {
+    hidden: {},
+    visible: {
+      transition: { staggerChildren: 0.1 },
+    },
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
+  };
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen text-gray-900">
@@ -53,10 +67,18 @@ export default function Dashboard() {
           <p className="text-gray-500">Start by adding your first project above.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <motion.div
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
           {projects.map((project) => (
-            <div
+            <motion.div
               key={project.id}
+              variants={cardVariants}
+              whileHover={{ scale: 1.03 }}
+              transition={{ duration: 0.4 }}
               className="bg-white p-6 rounded-lg shadow hover:shadow-xl transition cursor-pointer flex flex-col justify-between"
               onClick={() => goToProject(project.id)}
             >
@@ -77,12 +99,11 @@ export default function Dashboard() {
               </div>
 
               <div className="mt-4 text-sm text-gray-700">
-               Click on this card to add task list for the project
-              
+                Click on this card to add task list for the project
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
     </div>
   );
